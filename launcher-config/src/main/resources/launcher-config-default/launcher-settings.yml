@@ -1,0 +1,9 @@
+# 检查到有被警告依赖被引入时的强制等待时间（秒）
+dependencyWarnRestrictDelaySeconds: 3
+
+# 是否忽略Class冲突（当此选项设置为true时，如果启动器检测到class冲突不会阻止工程构建）
+ignoreClassConflict: true
+
+# 排除 maven.plugin.handler 包中的哪些 handler
+handlerExcludes:
+ - JarConflictHandler

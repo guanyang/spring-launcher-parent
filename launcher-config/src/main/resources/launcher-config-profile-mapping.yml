@@ -1,0 +1,4 @@
+# 该文件对应在package时未显式设置`-Dlauncher.config.profile`时的自动检测方式
+- profile: default
+  packagePrefixIncludes:
+    - org.gy.framework

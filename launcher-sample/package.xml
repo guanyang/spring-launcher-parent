@@ -1,0 +1,13 @@
+<fileSet>
+    <directory>./src/main/resources</directory>
+    <includes>
+        <include>**/*.properties</include>
+        <include>**/*.conf</include>
+        <include>**/*.xml</include>
+    </includes>
+    <excludes>
+        <exclude>**/log4j2.xml</exclude>
+    </excludes>
+    <outputDirectory>conf</outputDirectory>
+    <lineEnding>unix</lineEnding>
+</fileSet>

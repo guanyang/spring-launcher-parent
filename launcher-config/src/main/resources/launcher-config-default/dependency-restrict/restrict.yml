@@ -1,0 +1,14 @@
+# 第三方依赖
+- dependency: com.alibaba:fastjson
+  bannedVersion: (,1.2.68)
+  recommendVersion: 1.2.69+
+  message: "1.2.68及以下版本有安全漏洞，请升级"
+
+- dependency: com.fasterxml.jackson.core:jackson-databind
+  warnedVersion: (,2.7.9.1],[2.8.0,2.8.10],[2.9.0,2.9.3]
+  message: "安全漏洞，请升级"
+
+- dependency: org.springframework.boot:spring-boot-starter-web
+  warnedVersion: (,1.5.3)
+  recommendVersion: 1.5.22+, 2.2.2+
+  message: "1.5.3及以下版本有个BUG导致在SpringBoot打包模式下请求响应过慢，请升级"

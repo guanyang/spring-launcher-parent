@@ -1,0 +1,30 @@
+  # 依赖的groupId:artifactId
+- dependency: dependency.groupId:dependency.artifactId
+  # 可用的版本（白名单）,用中括号把版本号括起来，版本号从小到大依次排列，并加双引号，否则解析失败
+  availableVersion: "[1.1.1.sec04]"
+  # 被禁用的版本号范围（构建失败）
+  bannedVersion: (0.0.1,9.9.9)
+  # 被警告的版本号范围（构建过程报警）
+  warnedVersion:
+  # 推荐的版本号
+  recommendVersion: 1.2.58
+  # 被禁用、警告时打印的信息
+  message: "demo message"
+  # 是否必须包含的依赖，如果该选项为true并且工程未包含含则工程构建失败
+  required: false
+
+# 第三方依赖
+- dependency: com.alibaba:fastjson
+  bannedVersion: (,1.2.68)
+  recommendVersion: 1.2.69+
+  message: "1.2.68及以下版本有安全漏洞，请升级"
+
+- dependency: com.fasterxml.jackson.core:jackson-databind
+  warnedVersion: (,2.7.9.1],[2.8.0,2.8.10],[2.9.0,2.9.3]
+  message: "安全漏洞，请升级"
+
+- dependency: org.springframework.boot:spring-boot-starter-web
+  bannedVersion: (,1.5.3)
+  recommendVersion: 1.5.22+, 2.2.2+
+  message: "1.5.3及以下版本有个BUG导致在SpringBoot打包模式下请求响应过慢，请升级"
+

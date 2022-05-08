@@ -1,0 +1,3 @@
+- dependencies:
+  - com.alibaba:dubbo
+  - org.apache.dubbo:dubbo

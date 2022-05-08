@@ -1,0 +1,629 @@
+#!/usr/bin/env bash
+#
+# 初始化
+
+# 初始化应用相关信息
+
+APP_INITED=0
+launcher::init_app() {
+
+    if [[ ${APP_INITED} == 1 ]]; then
+        return
+    fi
+
+    launcher::init_app::home_dir
+
+    launcher::init_app::name
+
+    if [[ ${LAUNCHER_ACTION} == "start" ]]; then
+
+        launcher::init_app::restart
+
+        launcher::init_app::start_in_daemon
+
+        launcher::init_app::log_on_console
+
+        launcher::init_app::region
+
+        launcher::init_app::instance_id
+
+        launcher::init_app::conf_file
+
+        launcher::init_app::env
+
+        launcher::init_app::main_class
+
+        launcher::init_app::classpath
+
+        launcher::init_app::log_dir
+
+        launcher::init_app::load_plugins
+
+        launcher::init_app::app_args
+
+        launcher::init_app::http_port
+
+        launcher::init_app::java_opts
+    fi
+    APP_INITED=1
+}
+
+launcher::init_app::restart() {
+    if launcher::action::is_started; then
+        if [[ -n ${PARAM_RESTART} ]]; then
+            log_info "Detected application is running, restart. (Argument -r | --restart detected)"
+            launcher::action::do_stop
+        elif [[ -n ${LAUNCHER_AUTORESTART} ]]; then
+            log_info "Detected application is running, restart. (System variable LAUNCHER_AUTORESTART detected)"
+            launcher::action::do_stop
+        else
+            log_error "Application '${APP_NAME}' has been already started with PID: $(launcher::action::get_service_pid ${APP_HOME} ${APP_NAME})."
+            launcher::abort
+        fi
+    fi
+}
+
+launcher::init_app::start_in_daemon() {
+    [[ ${PARAM_START_IN_DAEMON} == true ]] && readonly APP_START_IN_DAEMON=true && return
+    [[ ${LAUNCHER_START_IN_DAEMON} == true || ${LAUNCHER_START_IN_DAEMON} == 1 ]] && readonly APP_START_IN_DAEMON=true && return
+
+    readonly APP_START_IN_DAEMON=false
+}
+
+launcher::init_app::log_on_console() {
+    [[ ${PARAM_LOG_ON_CONSOLE} == false ]] && readonly APP_LOG_ON_CONSOLE=false && return
+    [[ ${LAUNCHER_LOG_ON_CONSOLE} == false ]] && readonly APP_LOG_ON_CONSOLE=false && return
+    [[ ${APP_START_IN_DAEMON} == true ]] && readonly APP_LOG_ON_CONSOLE=false && return
+
+    readonly APP_LOG_ON_CONSOLE=true
+}
+
+########################################################
+# 初始化APP_HOME（应用目录）
+# 将启动文件的上级目录作为应用目录
+# Globals:
+#   LAUNCHER_FILE_PATH
+# Arguments:
+#   none
+# Returns:
+#   Set Global: APP_HOME
+########################################################
+launcher::init_app::home_dir(){
+
+    local app_home=$(readlink -f $(dirname ${LAUNCHER_FILE_PATH})/../)
+
+    if [[ -z ${app_home} ]]; then
+        log_error "APP home init failed"
+        launcher::abort
+    fi
+
+    if [[ ! -d "${app_home}" ]]; then
+        log_error "APP home \"${app_home}\" is not a directory"
+        launcher::abort
+    fi
+
+    if [[ ! -w "${app_home}" ]]; then
+        log_error "APP home \"${app_home}\" has no writable permission"
+        launcher::abort
+    fi
+
+    readonly APP_HOME=${app_home}
+    log_info "Application home: [${APP_HOME}]"
+}
+
+
+########################################################
+# 初始化应用配置文件夹路径
+# Globals:
+#   APP_CONF_FILE: 应用配置文件路径
+#   PARAM_APP_NAME: 从启动参数'--service-name'中获取的值
+# Arguments:
+#   none
+# Returns:
+#   Set Global: APP_NAME
+########################################################
+launcher::init_app::name() {
+
+    local app_name
+    local app_name_from_msg
+
+    # 使用参数中的服务名
+    if [[ -z ${app_name} && -n ${PARAM_APP_NAME} ]]; then
+        app_name="${PARAM_APP_NAME}"
+        app_name_from_msg="command args"
+    fi
+
+    # 使用会话变量中的服务名
+    if [[ -z ${app_name} && -n ${LAUNCHER_APP_NAME} ]]; then
+        app_name="${LAUNCHER_APP_NAME}"
+        app_name_from_msg="environment variable"
+    fi
+
+    local app_list=$(ls -l ${APP_HOME}/conf | grep -E '.app.options$' | awk '{print $(NF-0)}' | awk -F '.app.options' '{print NR". "$1}' )
+    # 让用户自己输入
+    if [[ -z ${app_name} ]]; then
+        local app_list_count=$(echo "${app_list}" | wc -l)
+        echo "Please select application:"
+        echo "${app_list}"
+        local app_number
+        while true; do
+            read -p 'Input application number:' app_number
+            if [[ ${app_number} =~ ^[0-9]+$ && ${app_number} -gt 0 && ${app_number} -le ${app_list_count} ]]; then
+                app_name=$(echo "${app_list}" | grep "^${app_number}"'. ' | awk '{print $2}')
+                app_name_from_msg='selected'
+                break;
+            fi
+        done
+    fi
+
+    if [[ $(echo ${app_list} | grep -w "${app_name}" | wc -l) != 1 ]]; then
+        log_warn "[ERROR-20001] Application [${app_name}] was not found in launcher-app-list:"
+        echo "${app_list}"
+        echo "Please add this application name [${app_name}] to <apps> element in launcher-maven-plugin"
+        launcher::abort
+    fi
+
+    if [[ -z ${app_name} ]]; then
+        log_error "APP_NAME not found"
+        launcher::abort
+    fi
+
+    readonly APP_NAME=${app_name}
+    log_info "Application name: [${app_name}] (Generated by ${app_name_from_msg})"
+}
+
+
+######################################################
+# 初始化应用配置文件, 该文件非必须
+# Globals:
+#   APP_CONF_DIR: 应用路径
+#   CONF_FILE_NAME_PARAM: 从启动参数'--conf-file-name'中获取的值
+# Arguments:
+#   none
+# Returns:
+#   Set Global: APP_CONF_DIR
+######################################################
+launcher::init_app::conf_file(){
+
+    readonly APP_CONF_DIR="${APP_HOME}/conf"
+
+    local app_conf_file="${APP_CONF_DIR}/${APP_NAME}.app.options"
+
+    if [[ -f ${app_conf_file} ]]; then
+        readonly APP_CONF_FILE=$(readlink -f ${app_conf_file})
+        log_info "launcher config file of application ${APP_NAME}: ${APP_CONF_FILE}"
+    else
+        readonly APP_CONF_FILE=""
+        log_info "launcher config file of application ${APP_NAME} not found, file '${app_conf_file}' not exists"
+    fi
+}
+
+launcher::init_app::region() {
+    local app_region
+    if [[ -n ${PARAM_APP_REGION} ]]; then
+        app_region=${PARAM_APP_REGION}
+        log_info "Application region: [${app_region}] (Generated from command args)"
+    elif [[ -n ${LAUNCHER_APP_REGION} ]]; then
+        app_region=${LAUNCHER_APP_REGION}
+        log_info "Application region: [${app_region}] (Generated from system variable LAUNCHER_APP_REGION)"
+    elif [[ -n $(printenv LAUNCHER_APP_REGION) && ${IS_IN_CONTAINER} == true ]]; then
+        app_region=$(printenv LAUNCHER_APP_REGION)
+        log_info "Application region: [${app_region}] (Generated from system environment LAUNCHER_APP_REGION)"
+    else
+        log_warn "Application region variable was not set"
+    fi
+    readonly APP_REGION=${app_region}
+}
+
+launcher::init_app::env() {
+    local tmp_app_env
+    if [[ -n ${PARAM_APP_ENV} ]]; then
+        tmp_app_env=${PARAM_APP_ENV}
+        log_info "Application environment: [${tmp_app_env}] (Generated from command args)"
+    elif [[ -n ${LAUNCHER_APP_ENV} ]]; then
+        tmp_app_env=${LAUNCHER_APP_ENV}
+        log_info "Application environment: [${tmp_app_env}] (Generated from system variable LAUNCHER_APP_ENV)"
+    elif [[ -n $(printenv LAUNCHER_APP_ENV) && ${IS_IN_CONTAINER} == true ]]; then
+        tmp_app_env=$(printenv LAUNCHER_APP_ENV)
+        log_info "Application environment: [${tmp_app_env}] (Generated from system environment LAUNCHER_APP_ENV)"
+    else
+        log_warn "Application environment variable was not set"
+    fi
+    readonly APP_ENV=${tmp_app_env}
+}
+
+
+######################################################
+# 初始化应用配置文件夹路径
+# Globals:
+#   APP_CONF_FILE: 应用配置文件
+#   PARAM_MAIN_CLASS: 从启动参数'--main-class'中获取的值
+# Arguments:
+#   none
+# Returns:
+#   Set Global: APP_MAIN_CLASS
+######################################################
+launcher::init_app::main_class(){
+    local app_main_class
+    local app_main_class_from_msg
+
+    # 使用参数中的SERVICE_NAME
+    if [[ -z ${app_main_class} && -n ${PARAM_MAIN_CLASS} ]]; then
+        app_main_class="${PARAM_MAIN_CLASS}"
+        app_main_class_from_msg="command args"
+    fi
+
+    # 使用配置文件中的MAIN_CLASS
+    if [[ -z ${app_main_class} && -f ${APP_CONF_FILE} ]]; then
+        local main_class_in_conf="$(get_property_in_file "app.mainClass" "${APP_CONF_FILE}" )"
+        eval main_class_in_conf=${main_class_in_conf}
+
+        if [[ -z "${main_class_in_conf}" ]]; then
+            log_warn "MAIN_CLASS not found in ${APP_CONF_FILE}"
+        else
+            app_main_class=${main_class_in_conf}
+            app_main_class_from_msg="configuration file [${APP_CONF_FILE}]"
+        fi
+    fi
+
+    if [[ -z ${app_main_class} ]]; then
+        log_error "Main class not found"
+        launcher::abort
+    fi
+
+    readonly APP_MAIN_CLASS=${app_main_class}
+    log_info "Application main class: [${APP_MAIN_CLASS}] (Generate by ${app_main_class_from_msg})"
+}
+
+######################################################
+# 初始化应用实例ID
+# Globals:
+#   APP_HOME: 应用目录
+#   MAIN_CLASS: 启动类
+#   PARAM_APP_INSTANCE_ID: 从启动参数'-sid'中获取的值
+#   STATIC_SERVICE_ID_PARAM: 使用静态ID
+#   POD_NAME: K8S POD NAME
+#   IS_IN_K8S: 是否是K8S环境
+#   IS_IN_CONTAINER: 是否容器环境
+# Arguments:
+#   none
+# Returns:
+#   Set Global: APP_INSTANCE_ID
+######################################################
+launcher::init_app::instance_id()
+{
+    local instance_id
+    local instance_id_from_msg
+
+    # 参数传入
+    if [[ -z ${instance_id} && -n ${PARAM_APP_INSTANCE_ID} ]]; then
+        instance_id=${PARAM_APP_INSTANCE_ID}
+        instance_id_from_msg="command args"
+    fi
+
+    # 系统变量
+    if [[ -z ${instance_id} && -n ${LAUNCHER_APP_INSTANCE_ID} ]]; then
+        instance_id=${LAUNCHER_APP_INSTANCE_ID}
+        instance_id_from_msg="system variable LAUNCHER_APP_INSTANCE_ID"
+    fi
+
+    # 使用K8S POD_NAME
+    if [[ -z ${instance_id} && ${IS_IN_K8S} == true ]]; then
+        instance_id=${POD_NAME}
+        instance_id_from_msg="k8s pod name"
+    fi
+
+    # 使用DOCKER CONTAINER ID
+    if [[ -z ${instance_id} && ${IS_IN_CONTAINER} == true ]]; then
+        instance_id=$(cat /proc/1/cpuset 2>/dev/null | awk -F / '{print $(NF-0)}' | cut -c 1-12)
+        instance_id_from_msg="container id"
+    fi
+
+    # 默认生成方式，使用(hostname/ip)+md5形式
+    if [[ -z ${instance_id} ]]; then
+        instance_id=""
+        if [[ ! $(hostname) == localhost ]]; then
+            instance_id+=$(hostname)
+        elif [[ ! $(hostname) == 127.0.0.1 ]]; then
+            instance_id+=$(hostname -i)
+        else
+            instance_id+=$(hostname -I | md5sum | awk '{print $1}' | cut -c 1-6)
+        fi
+        instance_id+="-$(echo "${APP_HOME} ${APP_NAME}" | md5sum | awk '{print $1}' | cut -c 1-6)"
+        instance_id_from_msg="default generation strategy"
+    fi
+
+    if [[ -z ${instance_id} ]]; then
+        log_error "Application instance id init failed"
+        launcher::abort
+    fi
+
+    readonly APP_INSTANCE_ID=${instance_id}
+    log_info "Application instance id: [${APP_INSTANCE_ID}] (Generated by ${instance_id_from_msg})"
+}
+
+######################################################
+# 初始化应用CLASS_PATH
+# Globals:
+#   APP_HOME: 应用目录
+#   PARAM_CLASSPATH: 从启动参数'-cp'中获取的值
+# Arguments:
+#   none
+# Returns:
+#   Set Global: APP_CLASSPATH
+######################################################
+launcher::init_app::classpath(){
+    local app_class_path
+    local app_class_path_from
+
+    # 参数传入
+    if [[ -n "${PARAM_CLASSPATH}" ]]; then
+        app_class_path_from="command args"
+        app_class_path=$(eval "echo \"${PARAM_CLASSPATH}\"")
+        if [[ "${app_class_path:0:1}" != '/' ]]; then
+            local absolute_app_class_path=$(readlink -f ${APP_HOME}/${app_class_path})
+            app_class_path=${absolute_app_class_path}:${absolute_app_class_path}/*
+        fi
+    fi
+
+    if [[ -z ${app_class_path} && ${LAUNCHER_IS_SPRINGBOOT_REPACKAGED} == "false" ]]; then
+        app_class_path=$(cat ${APP_HOME}/conf/classpath-files.txt | tr '\n' ':' | sed -e "s|:|:${APP_HOME}\/lib\/|g")
+        app_class_path="${APP_HOME}/lib/${app_class_path}"
+        app_class_path_from="classpath-files.txt"
+    fi
+
+    # 默认路径
+    if [[ -z ${app_class_path} ]]; then
+        app_class_path=${APP_HOME}/lib:${APP_HOME}/lib/*
+        app_class_path_from="default class path"
+    fi
+
+    readonly APP_CLASSPATH=${app_class_path}
+    log_info "Application class path: [${APP_CLASSPATH}] (Generated by ${app_class_path_from})"
+}
+
+launcher::init_app::log_dir() {
+
+    local log_dir
+    local log_dir_type
+    local default_log_dir=${APP_HOME}/logs/${APP_NAME}/${APP_INSTANCE_ID}
+
+    # 如果命令行中有，则使用命令行中的
+    if [[ -z ${log_dir} && -n ${PARAM_LOG_DIR} ]]; then
+        log_dir=${PARAM_LOG_DIR}
+        log_dir_type=${PARAM_LOG_DIR_TYPE}
+    fi
+
+    # 使用会话中的变量
+    if [[ -z ${log_dir} && -n ${LAUNCHER_APP_LOG_DIR} ]]; then
+        log_dir=${LAUNCHER_APP_LOG_DIR}
+        log_dir_type=${LAUNCHER_APP_LOG_DIR_TYPE}
+    fi
+
+    # 使用环境变量
+    if [[ -z ${log_dir} && -n $(printenv LAUNCHER_APP_LOG_DIR) ]]; then
+        log_dir=$(printenv LAUNCHER_APP_LOG_DIR)
+        log_dir_type=$(printenv LAUNCHER_APP_LOG_DIR_TYPE)
+    fi
+
+    log_dir_type=${log_dir_type:-BASE}
+
+
+    # 从log_dir以及log_dir_type两个参数中，生成最终的日志目录
+    local app_log_dir=${default_log_dir}
+    if [[ -n ${log_dir} ]]; then
+        if [[ ${log_dir_type} == "BASE" ]]; then
+            app_log_dir=${log_dir}/${APP_NAME}/${APP_INSTANCE_ID}
+        elif [[ ${log_dir_type} == "APP" ]]; then
+            app_log_dir=${log_dir}/${APP_INSTANCE_ID}
+        elif [[ ${log_dir_type} == "INSTANCE" ]]; then
+            app_log_dir=${log_dir}
+        else
+            log_error "Invalid LOG_DIR_TYPE '${log_dir_type}'"
+            launcher::abort
+        fi
+    fi
+
+    set -e; mkdir -p ${app_log_dir}; set +e
+    readonly APP_LOG_DIR=$(readlink -f ${app_log_dir})
+    log_info "Application log dir: ${APP_LOG_DIR}"
+
+
+    # 创建日志目录到app home下默认日志路径的软连接，方便查询日志
+    launcher::init_app::create_log_dir_link
+
+    # 把启动器日志文件里的内容写到标准日志文件里，方便收集
+    launcher::init_app::move_launcher_log_file
+
+}
+
+launcher::init_app::create_log_dir_link() {
+    set -e
+    local default_log_dir=${APP_HOME}/logs/${APP_NAME}/${APP_INSTANCE_ID}
+    if [[ $(readlink -f ${default_log_dir}) == $(readlink -f ${APP_LOG_DIR}) ]]; then
+        return
+    fi
+
+    # 如果当前默认日志文件夹是个软连接，则删除
+    if [[ -L "${default_log_dir}" && -d "${default_log_dir}" ]]; then
+        log_info "Remove exists symlink: ${default_log_dir}"
+        rm ${default_log_dir}
+    fi
+
+    # 如果当前标准日志文件夹是个普通文件夹并且里面是空的，则把目录删了
+    if [[ -d "${default_log_dir}" && -z "$(ls -A ${default_log_dir})" ]]; then
+        log_info "Remove exists application empty log dir: ${default_log_dir}"
+        rm -r ${default_log_dir}
+    fi
+
+    if [[ ! -d ${default_log_dir} ]]; then
+        log_info "Create application default log dir ${default_log_dir}"
+        mkdir -p ${APP_HOME}/logs/${APP_NAME}
+
+        log_info "Link application default log dir [${default_log_dir}] to ${APP_LOG_DIR}"
+        ln -s ${APP_LOG_DIR} ${APP_HOME}/logs/${APP_NAME}/
+    else
+        log_warn "Log directory [${default_log_dir}] has been already exists, could not create symlink"
+    fi
+    set +e
+}
+
+launcher::init_app::move_launcher_log_file() {
+    set -e
+    mkdir -p ${APP_LOG_DIR}/biz
+    cat ${LAUNCHER_LOG_FILE} >> ${APP_LOG_DIR}/biz/${APP_NAME}.biz.log
+    local tmp_log_file=${LAUNCHER_LOG_FILE}
+    LAUNCHER_LOG_FILE=${APP_LOG_DIR}/biz/${APP_NAME}.biz.log
+    rm -f ${tmp_log_file}
+    set +e
+}
+
+
+
+launcher::init_app::app_args(){
+    local app_args;
+
+    app_args+=" ${PLUGIN_APP_ARGS} "
+    app_args+=$(eval "echo \"${PARAM_APP_ARGS}\"")
+
+    readonly APP_ARGS=${app_args}
+}
+
+
+########################################################
+# 初始化JVM参数
+# Globals:
+#   APP_HOME
+#   APP_NAME
+#   APP_INSTANCE_ID
+#   APP_LOG_DIR
+#   APP_CONF_DIR
+#   LAUNCHER_LOG_FILE
+#   PARAM_JAVA_OPTS
+# Arguments:
+#   none
+# Returns:
+#   Set Global: APP_JAVA_OPTS
+########################################################
+launcher::init_app::java_opts(){
+
+    # application jvm args
+    local default_java_opts
+
+    [[ -n ${LAUNCHER_APP_ID} ]] && default_java_opts+="-Dlauncher.app.id=${LAUNCHER_APP_ID} "
+    [[ -n ${APP_ENV} ]] && default_java_opts+="-Dlauncher.app.env=${APP_ENV} "
+    [[ -n ${APP_REGION} ]] && default_java_opts+="-Dlauncher.app.region=${APP_REGION} "
+
+
+    [[ -n ${APP_HTTP_PORT} ]] && default_java_opts+="-Dlauncher.app.http.port=${APP_HTTP_PORT} -Dserver.port=${APP_HTTP_PORT} "
+    [[ -n ${APP_SRC_GROUP} ]] && default_java_opts+="-Dlauncher.app.src.group=${APP_SRC_GROUP} "
+
+    launcher::init_app::chek_port_available ${APP_HTTP_PORT}
+    
+    default_java_opts+="-Dlauncher.app.home=${APP_HOME} \
+        -Dlauncher.app.name=${APP_NAME} \
+        -Dlauncher.app.instance.id=${APP_INSTANCE_ID} \
+        -Dlauncher.app.log.dir=${APP_LOG_DIR} \
+        -Dlauncher.version=${LAUNCHER_VERSION} \
+        -Dlauncher.releaseDate=${LAUNCHER_RELEASE_DATE}"
+
+    default_java_opts+=" -Dlogging.config=${APP_CONF_DIR}/logback.xml "
+
+    # RocketMQ log dir
+    default_java_opts+=" -Drocketmq.client.logRoot=${APP_LOG_DIR}/rocketmqlogs "
+
+    # 应用GC文件名称
+    local gc_log_file=${APP_LOG_DIR}/gc/${APP_NAME}.gc.${LAUNCHER_ACTION_TIMESTAMP}.log
+    mkdir -p ${APP_LOG_DIR}/gc
+
+    local jvm_option_file="${APP_HOME}/conf/jvm.options"
+
+    local app_java_opts="${default_java_opts} $(parse_jvm_options "${jvm_option_file}")"
+
+    if [[ -n ${PLUGIN_JAVA_OPTS} ]]; then
+        app_java_opts+=" ${PLUGIN_JAVA_OPTS} "
+    fi
+
+    if [[ -n ${LAUNCHER_JAVA_OPTS} ]]; then
+        app_java_opts+=" ${LAUNCHER_JAVA_OPTS} "
+    fi
+
+    app_java_opts+=" ${PARAM_JAVA_OPTS} "
+
+    # init java.io.tmpdir
+    local java_io_tmpdir=$(echo "-Djava_io_tmpdir=${APP_HOME}/tmp/${APP_NAME}/${APP_INSTANCE_ID} ${app_java_opts}" | awk -F '-Djava.io.tmpdir=' '{print $NF}' | awk '{print $1}'  | head -1)
+
+    log_info "Create java.io.tmpdir directory: [${java_io_tmpdir}]"
+    set -e; mkdir -p ${java_io_tmpdir}; set +e
+
+    # remove duplicated java.io.tmpdir properties
+    app_java_opts="$(echo ${app_java_opts} |  sed -e 's/-Djava.io.tmpdir=[^ ]*//g') -Djava.io.tmpdir=${java_io_tmpdir}"
+
+    readonly APP_JAVA_OPTS="$(eval "echo \"${app_java_opts}\"")"
+
+    log_info "Application java opts: "
+    echo "${APP_JAVA_OPTS}" | awk '{ gsub(" -", "\n-") } 1' | tee -a "${LAUNCHER_LOG_FILE}"
+}
+
+
+launcher::init_app::chek_port_available() {
+    local port=${1}
+    local time_out_sec=${2:-5}
+
+    [[ -z ${port}} ]] && return
+
+    declare -i time_sec=1
+    while [[ $(netstat -tln 2>/dev/null | awk '{print $4,$6}' | grep ":${port} LISTEN" | wc -l) -gt 0 ]]
+    do
+        if [[ ${time_sec} -gt ${time_out_sec} ]]; then
+            log_error "Port ${port} has been used by another process, abort startup."
+            local port_pid=$(netstat -tlnp 2>/dev/null | awk '{print $4,$6,$7}' | grep ":${port} LISTEN" | awk '{print $3}' | awk -F '/' '{print $1}')
+            [[ -n ${port_pid} ]] && ps --no-headers ww -o pid,user,cmd -p ${port_pid} 2>/dev/null
+            exit 1
+        fi
+        time_sec+=1
+        sleep 1
+    done
+}
+
+launcher::init_app::http_port() {
+    local http_port
+
+    # args参数
+    http_port=$(echo ${APP_ARGS} | awk -F '--server.port=' '{print $(NF)}' | awk '{print $1}'  | head -1)
+    if [[ ${http_port} =~ ^[0-9]+$ && ${http_port} -gt 0 ]]; then
+        APP_HTTP_PORT=${http_port}
+        return
+    fi
+
+    # jvm参数
+    http_port=$(echo ${PARAM_JAVA_OPTS} | awk -F '-Dserver.port=' '{print $(NF)}' | awk '{print $1}'  | head -1)
+    if [[ ${http_port} =~ ^[0-9]+$ && ${http_port} -gt 0 ]]; then
+        APP_HTTP_PORT=${http_port}
+        return
+    fi
+
+    # -p
+    http_port=${PARAM_APP_HTTP_PORT}
+    if [[ ${http_port} =~ ^[0-9]+$ && ${http_port} -gt 0 ]]; then
+        APP_HTTP_PORT=${http_port}
+        return
+    fi
+
+    # 环境变量
+    http_port=${LAUNCHER_APP_HTTP_PORT}
+    if [[ ${http_port} =~ ^[0-9]+$ && ${http_port} -gt 0 ]]; then
+        APP_HTTP_PORT=${http_port}
+        return
+    fi
+
+    APP_HTTP_PORT=""
+}
+
+launcher::init_app::load_plugins(){
+    for plugin in ${PLUGIN_LIST}; do
+        if [[ $(launcher::plugin::${plugin}::is_enabled) == true ]]; then
+            launcher::plugin::${plugin}
+        fi
+    done
+}

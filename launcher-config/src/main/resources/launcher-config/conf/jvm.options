@@ -1,0 +1,95 @@
+## JVM configuration
+
+################################################################
+## JVM heap size
+################################################################
+
+# -Xms2g
+# -Xmx2g
+
+################################################################
+## Expert settings
+################################################################
+
+## GC configuration
+# -XX:+UseConcMarkSweepGC
+# -XX:CMSInitiatingOccupancyFraction=75
+# -XX:+UseCMSInitiatingOccupancyOnly
+
+## optimizations
+
+# pre-touch memory pages used by the JVM during initialization
+# -XX:+AlwaysPreTouch
+
+## basic
+
+# explicitly set the stack size (default 1m)
+# -Xss1m
+
+# set to headless, just in case
+# -Djava.awt.headless=true
+
+# ensure UTF-8 encoding by default (e.g. filenames)
+# -Dfile.encoding=UTF-8
+
+# use our provided JNA always versus the system one
+# -Djna.nosys=true
+
+# turn off a JDK optimization that throws away stack traces for common
+# exceptions because stack traces are important for debugging
+# -XX:-OmitStackTraceInFastThrow
+
+# force the timezone
+# -Duser.timezone=GMT+08
+
+# use ipv4 first
+# -Djava.net.preferIPv4Stack=true
+
+## other args
+-XX:+PrintCommandLineFlags
+
+# -XX:+ExitOnOutOfMemoryError
+
+################################################################
+## Heap Dumps
+################################################################
+
+# generate a heap dump when an allocation from the Java heap fails
+# heap dumps are created in the working directory of the JVM
+# -XX:+HeapDumpOnOutOfMemoryError
+
+# specify an alternative path for heap dumps; ensure the directory exists and
+# has sufficient space
+-XX:HeapDumpPath=${APP_LOG_DIR}/dump
+
+# specify an alternative path for JVM fatal error logs
+-XX:ErrorFile=${APP_LOG_DIR}/fatal/${APP_NAME}.fatal.${LAUNCHER_ACTION_TIMESTAMP}.log
+
+################################################################
+## JDK 8 GC logging
+################################################################
+
+-XX:+PrintGCDetails
+-XX:+PrintGCDateStamps
+-XX:+PrintGCTimeStamps
+#-XX:+PrintTenuringDistribution
+#-XX:+PrintGCApplicationStoppedTime
+#-XX:+PrintClassHistogram
+#-XX:+PrintTenuringDistribution
+
+
+# log GC status to a file with time stamps
+# ensure the directory exists
+-Xloggc:${gc_log_file}
+
+# GC log rotate
+-XX:+UseGCLogFileRotation
+-XX:NumberOfGCLogFiles=15
+-XX:GCLogFileSize=32M
+
+################################################################
+## Log4j2 Configuration
+################################################################
+
+# -Dlog4j.shutdownHookEnabled=false
+# -Dlog4j2.disable.jmx=true

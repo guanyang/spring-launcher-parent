@@ -1,0 +1,41 @@
+- classOrPackage: org.apache.juli
+  ignoreWithSameVersion: true
+  dependency:
+    - org.apache.tomcat.embed:tomcat-embed-core
+    - org.apache.tomcat:tomcat-juli
+
+- classOrPackage: javax.annotation.Priority
+  dependency:
+    - org.jboss.resteasy:jaxrs-api
+    - org.apache.tomcat:tomcat-annotations-api
+
+- classOrPackage: javax.persistence
+  dependency:
+    - org.hibernate.javax.persistence:hibernate-jpa-2.1-api
+    - org.apache.tomcat.embed:tomcat-embed-core
+
+- classOrPackage: org.apache.commons.logging
+  dependency:
+    - commons-logging:commons-logging
+    - org.slf4j:jcl-over-slf4j
+
+- classOrPackage: org.asynchttpclient
+  dependency:
+    - org.asynchttpclient:async-http-client-netty4
+    - org.asynchttpclient:async-http-client-api
+
+- classOrPackage: io.netty
+  ignoreWithSameVersion: true
+  dependency:
+    - io.netty:netty-all
+    - io.netty:netty-buffer
+    - io.netty:netty-codec
+    - io.netty:netty-codec-http
+    - io.netty:netty-common
+    - io.netty:netty-handler
+    - io.netty:netty-transport
+
+- classOrPackage: org.aopalliance
+  dependency:
+    - org.springframework:spring-aop
+    - aopalliance:aopalliance

@@ -1,0 +1,24 @@
+<!-- https://logback.qos.ch/manual/configuration.html#fileInclusion -->
+<included>
+
+    <appender name="pointAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logDir}/point/${launcher.app.name}.point.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>${logDir}/point/${launcher.app.name}.%d{yyyy-MM-dd}.%i.point.log</fileNamePattern>
+            <maxFileSize>${maxFileSize}</maxFileSize>
+            <maxHistory>${maxHistory}</maxHistory>
+            <totalSizeCap>${totalSizeCap}</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%msg%n</Pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.gy.framework.launcher.sample.point" level="INFO" additivity="false">
+        <appender-ref ref="pointAppender" />
+    </logger>
+
+</included>

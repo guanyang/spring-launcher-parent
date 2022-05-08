@@ -1,0 +1,80 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+    <id>package</id>
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <includeBaseDirectory>true</includeBaseDirectory>
+    <baseDirectory>___baseDirectory___</baseDirectory>
+    <fileSets>
+        <!-- 启动器文件 -->
+        <fileSet>
+            <directory>./target/launcher/bin</directory>
+            <includes>
+                <include>**</include>
+            </includes>
+            <fileMode>0755</fileMode>
+            <outputDirectory>bin</outputDirectory>
+            <lineEnding>unix</lineEnding>
+        </fileSet>
+        <fileSet>
+            <directory>./target/launcher/conf</directory>
+            <includes>
+                <include>**</include>
+            </includes>
+            <fileMode>0644</fileMode>
+            <outputDirectory>conf</outputDirectory>
+            <lineEnding>unix</lineEnding>
+        </fileSet>
+
+        <!-- 启动器 plugins -->
+        <fileSet>
+            <directory>./target/launcher/plugins</directory>
+            <includes>
+                <include>**</include>
+            </includes>
+            <excludes>
+                <exclude>**/*.properties</exclude>
+            </excludes>
+            <outputDirectory>plugins</outputDirectory>
+        </fileSet>
+
+        <fileSet>
+            <directory>./target/launcher/plugins</directory>
+            <includes>
+                <include>**/*.properties</include>
+            </includes>
+            <fileMode>0644</fileMode>
+            <outputDirectory>plugins</outputDirectory>
+            <lineEnding>unix</lineEnding>
+        </fileSet>
+
+
+        <!-- 规范应用结构，创建运行时生成出的部分文件夹 -->
+        <fileSet>
+            <directory>.</directory>
+            <outputDirectory>logs</outputDirectory>
+            <excludes>
+                <exclude>*/**</exclude>
+            </excludes>
+        </fileSet>
+        <fileSet>
+            <directory>.</directory>
+            <outputDirectory>tmp</outputDirectory>
+            <excludes>
+                <exclude>*/**</exclude>
+            </excludes>
+        </fileSet>
+
+        <!-- 自定义fileset -->
+        ___customFileSet___
+
+        <!-- springboot打包好的jar -->
+        ___addSpringBootPackagedJar___
+
+    </fileSets>
+
+
+    <!-- 未加载springboot-maven-plugin时，加入服务依赖 -->
+    ___dependenciesWithoutPackaged___
+</assembly>
