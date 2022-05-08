@@ -72,7 +72,7 @@ package执行完毕后，会自动在模块中的`target`目录下生成${PROJEC
 
 [日志配置指南](docs/日志配置指南.md)
 
-[Dockerfile扩展支持](docs/Dockerfile.md)
+[Dockerfile扩展支持](docs/Dockerfile扩展支持.md)
 
 [测试用例](docs/测试用例.md)
 
