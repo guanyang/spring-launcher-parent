@@ -322,7 +322,7 @@ EOF
 
 launcher::main::print_start_usage() {
     printf "Usage:  $0 start [OPTIONS]\n\n"
-    printf "Example:  $0 start -d -sn MyService --args 'arg1 arg2 arg3' -jo '-Xmx2g'\n\n"
+    printf "Example:  $0 start -d -n MyService --args 'arg1 arg2 arg3' -jo '-Xmx2g'\n\n"
     printf "Start an application\n\n"
     printf 'Options:\n'
 

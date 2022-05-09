@@ -349,13 +349,7 @@ launcher::action::detonate() {
         start_cmd+="${JAVA_HOME}/bin/java -cp ${APP_CLASSPATH} ${APP_JAVA_OPTS} ${APP_MAIN_CLASS} ${APP_ARGS}"
     fi
 
-    if [[ ${LAUNCHER_KEEP_STDOUT_FORMAT} == 1 || ${LAUNCHER_KEEP_STDOUT_FORMAT} == true ]]; then
-      # 添加 IFS= 可以保持标准输出中前后两段的空格及制表符，但是当服务器环境变量很多的(env | wc -l)情况下，这个动作会影响标准输出的性能（阿里云环境）
-      # https://unix.stackexchange.com/questions/26784/understanding-ifs
-      start_cmd="${start_cmd} </dev/null 2>&1 | while IFS= read -r line; do echo \"\${line}\" >> ${APP_LOG_DIR}/biz/${APP_NAME}.biz.log; done &"
-    else
-      start_cmd="${start_cmd} </dev/null 2>&1 | while read -r line; do echo \"\${line}\" >> ${APP_LOG_DIR}/biz/${APP_NAME}.biz.log; done &"
-    fi
+    start_cmd="${start_cmd} >> ${APP_LOG_DIR}/biz/${APP_NAME}.biz.log 2>&1 &"
 
     if [[ ${APP_START_IN_DAEMON} == true ]]; then
         log_info "Start application in daemon mode"

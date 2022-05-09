@@ -156,7 +156,7 @@ launcher::init_app::name() {
         done
     fi
 
-    if [[ $(echo ${app_list} | grep -w "${app_name}" | wc -l) != 1 ]]; then
+    if [[ $(echo ${app_list} | grep -w "${app_name}" | wc -l) -ne 1 ]]; then
         log_warn "[ERROR-20001] Application [${app_name}] was not found in launcher-app-list:"
         echo "${app_list}"
         echo "Please add this application name [${app_name}] to <apps> element in launcher-maven-plugin"
