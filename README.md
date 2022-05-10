@@ -11,7 +11,7 @@ launcher的新用户如果想要快速接入项目，可以参考本工程**laun
 
 在项目`pom.xml`中删除已有的打包工具配置，例如：`maven-assembly-plugin`、`spring-boot-maven-plugin`
 
-### 添加detonator打包插件
+### 添加launcher打包插件
 
 添加`launcher-maven-plugin`到`pom.xml`中
 

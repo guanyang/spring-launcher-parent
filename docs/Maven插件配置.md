@@ -20,7 +20,7 @@
                             <goal>launcher</goal>
                         </goals>
                         <configuration>
-                            <!-- All detonator-maven-plugin configurations -->
+                            <!-- All launcher-maven-plugin configurations -->
                         </configuration>
                     </execution>
                 </executions>

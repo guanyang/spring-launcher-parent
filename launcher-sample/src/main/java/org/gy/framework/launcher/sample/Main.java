@@ -41,7 +41,7 @@ public class Main implements DisposableBean {
             logger.info(e.getMessage(),e);
         }
 
-        System.out.println("Hello! Detonator.");
+        System.out.println("Hello! launcher.");
         if (null != args && args.length > 0) {
             logger.info("Args length: {}", args.length);
             for (int i = 0; i < args.length; i++) {
@@ -55,7 +55,7 @@ public class Main implements DisposableBean {
     @RequestMapping("/hello")
     @ResponseBody
     private String hello() {
-        return "Hello detonator!";
+        return "Hello launcher!";
     }
 
 

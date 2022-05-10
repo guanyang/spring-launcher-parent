@@ -19,7 +19,7 @@ public class Main2 {
     public static void main(String[] args) throws Exception {
         SpringApplication.run(Main2.class, args);
         logger.info("I'm Main2");
-        System.out.println("Hello! Detonator.");
+        System.out.println("Hello! launcher.");
         if (null != args && args.length > 0) {
             logger.info("Args length: {}", args.length);
             for (int i = 0; i < args.length; i++) {
