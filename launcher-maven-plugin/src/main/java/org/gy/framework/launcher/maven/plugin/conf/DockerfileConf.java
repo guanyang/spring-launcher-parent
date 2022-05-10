@@ -7,11 +7,12 @@ import lombok.Setter;
 @Setter
 public class DockerfileConf {
 
-    private String fromImage=System.getProperty("launcher.build.docker.fromImage","hub.docker.com/repository/docker/guanyangsunlight/java-centos:1.8_201_b09");
+    private String fromImage = System.getProperty("launcher.build.docker.fromImage",
+        "hub.docker.com/repository/docker/guanyangsunlight/openjdk:8u332-jdk-oraclelinux8");
 
-    private String packageModulePath=".";
+    private String packageModulePath = ".";
 
-    private String instructionAfterFrom="";
+    private String instructionAfterFrom = "";
 
-    private String instructionBeforeCmd="";
+    private String instructionBeforeCmd = "";
 }
