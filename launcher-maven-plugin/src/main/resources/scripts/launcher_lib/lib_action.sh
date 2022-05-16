@@ -128,10 +128,12 @@ launcher::action::check_app_by_mode() {
     fi
 
     local check_plugin
-    if launcher::plugin::wls::check_by_this_way ${app_pid}; then
+    if launcher::plugin::javaagent::check_by_this_way ${app_pid}; then
+        check_plugin=javaagent
+    elif launcher::plugin::wls::check_by_this_way ${app_pid}; then
         check_plugin=wls
     else
-        log_info "Plugin wls was not enable or not match this application, ${mode} check skipped."
+        log_info "Plugin Javaagent/WLS was not enable or not match this application, ${mode} check skipped."
         return 0
     fi
 

@@ -1,26 +1,5 @@
 package org.gy.framework.launcher.maven.plugin.mojo;
 
-import org.gy.framework.launcher.config.LauncherConfig;
-import org.gy.framework.launcher.config.LauncherConfigVariable;
-import org.gy.framework.launcher.config.LauncherMsg;
-import org.gy.framework.launcher.config.Logger;
-import org.gy.framework.launcher.maven.plugin.conf.AppConf;
-import org.gy.framework.launcher.maven.plugin.conf.DockerfileConf;
-import org.gy.framework.launcher.maven.plugin.conf.LogConf;
-import org.gy.framework.launcher.maven.plugin.handler.AbstractHandler;
-import org.gy.framework.launcher.maven.plugin.handler.AppOptionHandler;
-import org.gy.framework.launcher.maven.plugin.handler.DependencyListHandler;
-import org.gy.framework.launcher.maven.plugin.handler.DependencyRejectionHandler;
-import org.gy.framework.launcher.maven.plugin.handler.DependencyRestrictHandler;
-import org.gy.framework.launcher.maven.plugin.handler.LauncherScriptsHandler;
-import org.gy.framework.launcher.maven.plugin.handler.DockerfileHandler;
-import org.gy.framework.launcher.maven.plugin.handler.FileSetHandler;
-import org.gy.framework.launcher.maven.plugin.handler.JarConflictHandler;
-import org.gy.framework.launcher.maven.plugin.handler.LogHandler;
-import org.gy.framework.launcher.maven.plugin.util.DependencyAnalyzer;
-import org.gy.framework.launcher.maven.plugin.util.ResourceUtil;
-import org.gy.framework.launcher.maven.plugin.util.SpringBootMavenPluginHelper;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -30,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +23,27 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.plugins.assembly.mojos.SingleAssemblyMojo;
 import org.apache.maven.settings.Settings;
+import org.gy.framework.launcher.config.LauncherConfig;
+import org.gy.framework.launcher.config.LauncherConfigVariable;
+import org.gy.framework.launcher.config.LauncherMsg;
+import org.gy.framework.launcher.config.Logger;
+import org.gy.framework.launcher.maven.plugin.conf.AppConf;
+import org.gy.framework.launcher.maven.plugin.conf.DockerfileConf;
+import org.gy.framework.launcher.maven.plugin.conf.LogConf;
+import org.gy.framework.launcher.maven.plugin.handler.AbstractHandler;
+import org.gy.framework.launcher.maven.plugin.handler.AppOptionHandler;
+import org.gy.framework.launcher.maven.plugin.handler.DependencyListHandler;
+import org.gy.framework.launcher.maven.plugin.handler.DependencyRejectionHandler;
+import org.gy.framework.launcher.maven.plugin.handler.DependencyRestrictHandler;
+import org.gy.framework.launcher.maven.plugin.handler.DockerfileHandler;
+import org.gy.framework.launcher.maven.plugin.handler.FileSetHandler;
+import org.gy.framework.launcher.maven.plugin.handler.JarConflictHandler;
+import org.gy.framework.launcher.maven.plugin.handler.JavaAgentHandler;
+import org.gy.framework.launcher.maven.plugin.handler.LauncherScriptsHandler;
+import org.gy.framework.launcher.maven.plugin.handler.LogHandler;
+import org.gy.framework.launcher.maven.plugin.util.DependencyAnalyzer;
+import org.gy.framework.launcher.maven.plugin.util.ResourceUtil;
+import org.gy.framework.launcher.maven.plugin.util.SpringBootMavenPluginHelper;
 
 /**
  * 服务器启动脚本自动打包插件，自动将启动脚本打包到/bin目录中
@@ -235,6 +234,7 @@ public class LauncherMojo extends SingleAssemblyMojo {
 
     private List<AbstractHandler> initHandlers() {
         List<AbstractHandler> handlers = new ArrayList<>();
+        handlers.add(new JavaAgentHandler(getProject(), getLog(), apps));
         handlers.add(new JarConflictHandler(getProject(), this.dependencyAnalyzer, getLog()));
         handlers.add(new DependencyListHandler(getProject(), this.dependencyAnalyzer, getLog()));
         handlers.add(new LauncherScriptsHandler(getProject(), getLog(), this.fileName));

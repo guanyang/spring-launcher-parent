@@ -64,6 +64,9 @@ package执行完毕后，会自动在模块中的`target`目录下生成${PROJEC
 
 想要查看更多选项请使用 `launcher.sh -h` 以及 `launcher.sh [start/stop/restart/status] -h`
 
+## Change Log
+[更新说明](docs/ChangeLog.md)
+
 ## 更多
 
 [启动器使用说明](docs/启动器使用说明.md)

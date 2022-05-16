@@ -13,6 +13,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <javaagent.download.version>8.10.0</javaagent.download.version>
+        <javaagent.download.name>apache-skywalking-java-agent-${javaagent.download.version}.tgz</javaagent.download.name>
+        <javaagent.download.url>https://dlcdn.apache.org/skywalking/java-agent/${javaagent.download.version}/${javaagent.download.name}</javaagent.download.url>
     </properties>
 
     <dependencies>
