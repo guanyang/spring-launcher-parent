@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gy.framework</groupId>
     <artifactId>spring-launcher-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>launcher-sample</artifactId>
@@ -65,7 +65,7 @@
       <plugin>
         <groupId>org.gy.framework</groupId>
         <artifactId>launcher-maven-plugin</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.1-SNAPSHOT</version>
         <executions>
           <execution>
             <goals>
