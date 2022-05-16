@@ -1,5 +1,6 @@
 ### 1.0.1-SNAPSHOT
 - 添加`skywalking-agent`插件支持，方便链路追踪
+- Javaagent默认下载路径`dlcdn.apache.org`，如果构建时下载过慢，可以在`launcher-maven-plugin/pom.xml`中修改`${javaagent.download.url}`变量
 - 增加Javaagent本地文件缓存机制，提升打包速度，缓存目录可以通过`-Dlauncher.javaagent.cache.dir`设置，默认为系统变量`java.io.tmpdir`
 
 ### 1.0.0-SNAPSHOT
