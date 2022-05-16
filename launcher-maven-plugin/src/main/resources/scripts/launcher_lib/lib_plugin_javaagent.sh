@@ -18,6 +18,10 @@ launcher::plugin::javaagent() {
     launcher::plugin::javaagent::init
 
     local backend_service=${JAVAAGENT_BACKEND_SERVICE}
+    # 如果启动参数未指定，则读取环境变量
+    if [[ -z ${backend_service} && -n ${LAUNCHER_JAVAAGENT_BACKEND_SERVICE} ]]; then
+        backend_service="${LAUNCHER_JAVAAGENT_BACKEND_SERVICE}"
+    fi
     if [[ -z "${backend_service}" ]]; then
         log_info "JavaAgent backend_service url not set"
         launcher::abort
@@ -104,7 +108,7 @@ launcher::plugin::javaagent::check_app_by_mode() {
 launcher::plugin::javaagent::parse_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
-            "--javaagent-backend_service")
+            "--javaagent-bs")
                 readonly JAVAAGENT_BACKEND_SERVICE=${2}
                 DO_SHIFT=1
                 shift
@@ -120,7 +124,7 @@ launcher::plugin::javaagent::parse_args() {
 
 launcher::plugin::javaagent::usage() {
     print_arg_usage '--javaagent-enable' '(default) Start application with JavaAgent'
-    print_arg_usage '--javaagent-backend_service' 'Set backend_service url'
+    print_arg_usage '--javaagent-bs' 'Set backend_service url'
 }
 
 launcher::plugin::javaagent::is_enabled() {
