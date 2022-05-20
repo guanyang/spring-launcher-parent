@@ -31,9 +31,7 @@ LAUNCHER_LOG_FILE="${LAUNCHER_FILE_DIR}/launcher_$(echo $$).log"
 for f in ${LAUNCHER_FILE_DIR}/*/lib_*.sh; do source $f; done
 
 # Init plugin list
-PLUGIN_LIST=$(find ${LAUNCHER_FILE_DIR}/*/lib_plugin_*.sh -printf "%f\n" \
-                | awk -F 'lib_plugin_' '{print $2}' \
-                | awk -F '.sh' '{print $1}')
+PLUGIN_LIST=$(find ${LAUNCHER_FILE_DIR}/*/lib_plugin_*.sh | awk -F 'lib_plugin_' '{print $2}' | awk -F '.sh' '{print $1}')
 
 # Init plugin logger
 for plugin in ${PLUGIN_LIST}; do
