@@ -23,8 +23,8 @@ launcher::plugin::javaagent() {
         backend_service="${LAUNCHER_JAVAAGENT_BACKEND_SERVICE}"
     fi
     if [[ -z "${backend_service}" ]]; then
-        log_info "JavaAgent backend_service url not set"
-        launcher::abort
+        log_warn "JavaAgent backend_service url not set, stop loading javaagent plugin."
+        return
     fi
 
     local agent_dir=${JAVAAGENT_DIR}
