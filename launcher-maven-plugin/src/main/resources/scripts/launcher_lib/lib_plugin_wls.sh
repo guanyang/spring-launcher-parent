@@ -5,21 +5,12 @@
 readonly WL_DEFAULT_SERVICE_PORT=8091
 
 launcher::plugin::wls() {
-    launcher::plugin::wls::init_legacy_javaopts
     launcher::plugin::wls::init_env
-}
-
-launcher::plugin::wls::init_legacy_javaopts() {
-    PLUGIN_JAVA_OPTS+=" -Dlauncher.app.log.dir=${APP_LOG_DIR} "
-    PLUGIN_JAVA_OPTS+=" -Dlauncher.app.name=${APP_NAME} "
 }
 
 launcher::plugin::wls::init_env() {
     if [[ -n ${APP_ENV} ]]; then
         local wls_env=${APP_ENV}
-        [[ ${wls_env} == prod ]] && wls_env="pro"
-        [[ ${wls_env} == stress ]] && wls_env="high"
-        [[ ${wls_env} == pre ]] && wls_env="trunk"
 
         PLUGIN_JAVA_OPTS+=" -Dspring.profiles.active=${wls_env} "
         log_info "${wls_logger}" "Service application environment: ${wls_env}"
@@ -77,24 +68,13 @@ launcher::plugin::wls::check_app_by_mode() {
 
 
 launcher::plugin::wls::usage() {
-    print_arg_usage '--wls-enable'  "检测到spring-boot-starter-actuator时自动开启"
+    print_arg_usage '--wls-enable'  "Start application with wls（true/false）"
 }
 
 launcher::plugin::wls::is_enabled() {
-    if [[ -n ${wls_enable} ]]; then
-        echo ${wls_enable}
-        return
-    fi
-
-    local classpath_dir=$(echo "${LAUNCHER_FILE_DIR}/../lib" | awk -F ':' '{print $1}')
-    if [[ $(ls -l ${classpath_dir} | grep spring-boot-starter-actuator | wc -l) -gt 0 ]]; then
-        echo "${wls_enable:=true}"
-        return
-    fi
-
-    echo "${wls_enable:=false}"
+    echo "${wls_enable:=true}"
 }
 
 launcher::plugin::wls::name() {
-    echo "Service Legacy Support"
+    echo "Springboot Web Service"
 }

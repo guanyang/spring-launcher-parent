@@ -132,6 +132,6 @@ launcher::plugin::javaagent::is_enabled() {
 }
 
 launcher::plugin::javaagent::name() {
-    echo "JavaAgent"
+    echo "Skywalking JavaAgent"
 }
 
