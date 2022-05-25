@@ -60,8 +60,10 @@ launcher::plugin::javaagent() {
     fi
 
     # 设置环境变量
+    local app_group=${APP_SRC_GROUP:-DEFAULT}
+    local service_name="${app_group}::${APP_NAME}"
     if [[ -f ${agent_path} ]]; then
-        PLUGIN_JAVA_OPTS+="-javaagent:${agent_path} -Dskywalking.agent.service_name=${APP_NAME} -Dskywalking.collector.backend_service=${backend_service}"
+        PLUGIN_JAVA_OPTS+="-javaagent:${agent_path} -Dskywalking.agent.service_name=${service_name} -Dskywalking.collector.backend_service=${backend_service}"
     else
         log_error "${javaagent_logger}" "JavaAgent init failed"
         launcher::abort
