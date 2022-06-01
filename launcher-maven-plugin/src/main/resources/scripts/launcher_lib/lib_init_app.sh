@@ -327,7 +327,7 @@ launcher::init_app::instance_id()
         elif [[ ! $(hostname) == 127.0.0.1 ]]; then
             instance_id+=$(hostname -i)
         else
-            instance_id+=$(hostname -I | md5sum | awk '{print $1}' | cut -c 1-6)
+            instance_id+=$(hostname -i | md5sum | awk '{print $1}' | cut -c 1-6)
         fi
         instance_id+="-$(echo "${APP_HOME} ${APP_NAME}" | md5sum | awk '{print $1}' | cut -c 1-6)"
         instance_id_from_msg="default generation strategy"

@@ -7,7 +7,7 @@ COPY ${packageModulePath}/target/*.launcher.tar.gz /tmp
 RUN set -ex && \
     build_timestamp=$(date +%s%N) && \
     echo "Build timestamp: ${build_timestamp}" && \
-    echo ${build_timestamp} | sha256sum | base64 | head -c 32 | passwd --stdin root && \
+    #echo ${build_timestamp} | sha256sum | base64 | head -c 32 | passwd --stdin root && \
     groupadd -g 571 www && \
     useradd -m www -u 571 -g 571 && \
     tar -zxf /tmp/*.launcher.tar.gz -C /home/www && \

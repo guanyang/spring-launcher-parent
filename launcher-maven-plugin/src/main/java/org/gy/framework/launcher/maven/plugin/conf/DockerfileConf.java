@@ -8,7 +8,7 @@ import lombok.Setter;
 public class DockerfileConf {
 
     private String fromImage = System.getProperty("launcher.build.docker.fromImage",
-        "guanyangsunlight/openjdk:8u332-jdk-oraclelinux7");
+        "guanyangsunlight/openjdk:8-jdk-alpine3.9");
 
     private String packageModulePath = ".";
 
