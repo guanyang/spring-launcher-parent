@@ -13,7 +13,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javaagent.download.version>8.12.0</javaagent.download.version>
+        <javaagent.download.enabled>false</javaagent.download.enabled>
+        <javaagent.download.version>8.13.0</javaagent.download.version>
         <javaagent.download.name>apache-skywalking-java-agent-${javaagent.download.version}.tgz</javaagent.download.name>
         <javaagent.download.url>https://mirrors.tuna.tsinghua.edu.cn/apache/skywalking/java-agent/${javaagent.download.version}/${javaagent.download.name}</javaagent.download.url>
     </properties>

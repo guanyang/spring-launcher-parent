@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -25,6 +24,9 @@ public class JavaAgentHandler extends AbstractConfListHandler<AppConf> {
 
     private static final String RESOURCE_FILE = "launcher.properties";
 
+    private static final String JAVAAGENT_ENABLED = System.getProperty("launcher.javaagent.download.enabled",
+        ResourceUtil.getResourceProperty(RESOURCE_FILE, "javaagent.download.enabled"));
+
     private static final String JAVAAGENT_VERSION = System.getProperty("launcher.javaagent.download.version",
         ResourceUtil.getResourceProperty(RESOURCE_FILE, "javaagent.download.version"));
 
@@ -34,23 +36,27 @@ public class JavaAgentHandler extends AbstractConfListHandler<AppConf> {
     private static final String JAVAAGENT_URL_DOWNLOAD = System.getProperty("launcher.javaagent.download.url",
         ResourceUtil.getResourceProperty(RESOURCE_FILE, "javaagent.download.url"));
 
+    private final boolean javaAgentEnabled;
     private final String javaAgentDir;
     private final String javaAgentMappingFilePath;
 
     public JavaAgentHandler(MavenProject project, Log log, List<AppConf> conf) {
         super(project, log, conf);
+        this.javaAgentEnabled = Boolean.parseBoolean(JAVAAGENT_ENABLED);
         this.javaAgentDir = this.launcherTargetBaseDir + "/plugins/javaagent/";
         this.javaAgentMappingFilePath = this.javaAgentDir + "javaagent-mapping.properties";
     }
 
     @Override
     public void execute() throws IOException {
-        FileUtils.deleteDirectory(new File(this.javaAgentDir));
+        if (javaAgentEnabled) {
+            FileUtils.deleteDirectory(new File(this.javaAgentDir));
 
-        for (AppConf appConf : confList) {
-            String appName = appConf.getName();
-            File javaAgentFile = downloadAppJavaAgentFile(appName);
-            generateJavaAgentMapping(appName, javaAgentFile.getName());
+            for (AppConf appConf : confList) {
+                String appName = appConf.getName();
+                File javaAgentFile = downloadAppJavaAgentFile(appName);
+                generateJavaAgentMapping(appName, javaAgentFile.getName());
+            }
         }
     }
 
