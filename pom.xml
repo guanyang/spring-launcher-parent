@@ -14,14 +14,23 @@
   <modules>
     <module>launcher-config</module>
     <module>launcher-maven-plugin</module>
-    <module>launcher-sample</module>
+<!--    <module>launcher-sample</module>-->
   </modules>
   <properties>
-    <current.version>1.0.0-SNAPSHOT</current.version>
+    <current.version>1.0.1-SNAPSHOT</current.version>
     <java.version>1.8</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.gy.framework</groupId>
+        <artifactId>launcher-config</artifactId>
+        <version>${current.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <build>
     <plugins>
       <plugin>

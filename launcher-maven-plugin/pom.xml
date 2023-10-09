@@ -24,7 +24,6 @@
         <dependency>
             <groupId>org.gy.framework</groupId>
             <artifactId>launcher-config</artifactId>
-            <version>${current.version}</version>
         </dependency>
 
         <dependency>
